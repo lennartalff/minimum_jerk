@@ -40,21 +40,21 @@ from __future__ import print_function, division
 import quadrocoptertrajectory as quadtraj
 
 # Define the trajectory starting state:
-pos0 = [0, 0, 2] #position
+pos0 = [0, 0, 0] #position
 vel0 = [0, 0, 0] #velocity
 acc0 = [0, 0, 0] #acceleration
 
 # Define the goal state:
-posf = [1, 0, 1]  # position
-velf = [0, 0, 1]  # velocity
-accf = [0, 9.81, 0]  # acceleration
+posf = [0, 0, 1]  # position
+velf = [1, 1, 1]  # velocity
+accf = [0, 0, 0]  # acceleration
 
 # Define the duration:
-Tf = 1
+Tf = 2
 
 # Define the input limits:
 fmin = 5  #[m/s**2]
-fmax = 25 #[m/s**2]
+fmax = 20 #[m/s**2]
 wmax = 20 #[rad/s]
 minTimeSec = 0.02 #[s]
 
