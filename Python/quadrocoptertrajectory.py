@@ -621,6 +621,9 @@ class RapidTrajectory:
 
         """
         return np.linalg.norm(self.get_acceleration(t) - self._grav)
+    
+    def get_thrust_vector(self, t):
+        return self.get_acceleration(t) - self._grav
 
     def get_body_rates(self, t, dt=1e-3):
         """ Return the body rates input at time `t`, in inertial frame.

@@ -54,7 +54,7 @@ Tf = 2
 
 # Define the input limits:
 fmin = 5  #[m/s**2]
-fmax = 20 #[m/s**2]
+fmax = 25 #[m/s**2]
 wmax = 20 #[rad/s]
 minTimeSec = 0.02 #[s]
 
