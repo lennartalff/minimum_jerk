@@ -345,9 +345,9 @@ def test_plot_normals():
 
 class Simulator():
 
-    def __init__(self, p0, v0, a0, ball: Ball) -> None:
+    def __init__(self, p0, v0, a0, ball: Ball, time_horizon_us) -> None:
         self.ball = ball
-        self.time_horizon_us = int(ball.floor_collision_time(1.0) * 1e6)
+        self.time_horizon_us = time_horizon_us
         self.dt_us = 1000
         self.t_last_trajectory_update_us = -1000000000
         self.trajectory_update_period_us = 20000
@@ -358,7 +358,8 @@ class Simulator():
         self.trajecories: List(Trajectory) = []
         self.p_history = []
         self.t_history = []
-        self.thrust_factor = 1.1
+        self.thrust_factor = 1.0
+        self.thrust_offset = 0.0
 
     def should_regenerate_trajectory(self):
         return (self.t_now_us - self.t_last_trajectory_update_us >=
@@ -378,11 +379,12 @@ class Simulator():
                 self.trajecories = generate_trajectories(
                     self.body.position(), self.body.velocity(),
                     self.body.acceleration(), t_now, dt_left, self.ball)
-                t_new = select_best_trajectory(
-                    self.trajecories)
+                t_new = select_best_trajectory(self.trajecories)
                 if t_new is not None:
                     self.selected_trajectory = t_new
                 thrust = self.selected_trajectory.thrust(t_now + 0.02)
+                thrust = thrust * self.thrust_factor + thrust / np.linalg.norm(
+                    thrust) * self.thrust_offset
                 self.body.set_thrust(thrust * self.thrust_factor)
             self.body.update_state(self.dt_us * 1e-6)
             self.p_history.append(self.body.position())
@@ -411,11 +413,12 @@ class Simulator():
         if ax is None:
             ax = plt.gca()
         ax.scatter(p[0, 0],
-                    p[0, 2],
-                    c='grey',
-                    edgecolors='black',
-                    marker='o',
-                    s=20**2)
+                   p[0, 2],
+                   c='grey',
+                   edgecolors='black',
+                   marker='o',
+                   s=20**2)
+
     def plot_movement(self, ax=None):
         p = np.array(self.p_history)
         t = np.array(self.t_history)
@@ -429,14 +432,13 @@ class Simulator():
         p = self.ball.position(self.t_now_us * 1e-6)
         if ax is None:
             ax = plt.gca()
-        ax.scatter(p[0],
-                    p[2],
-                    c='red',
-                    # edgecolors='black',
-                    marker='x',
-                    s=20**2)
-        
-
+        ax.scatter(
+            p[0],
+            p[2],
+            c='red',
+            # edgecolors='black',
+            marker='x',
+            s=20**2)
 
 
 def simulate_figure7_scenario():
@@ -450,7 +452,14 @@ def simulate_figure7_scenario():
     a0 = [0.0, 0.0, 0.0]
 
     ball = Ball(p0_ball, v0_ball)
-    sim = Simulator(p0, v0, a0, ball)
+    time_horizon_us = int(ball.floor_collision_time(0.3) * 1e6)
+    sim = Simulator(p0, v0, a0, ball, time_horizon_us)
+
+    # sim.thrust_factor = 1.1 # works quite okay
+    # sim.thrust_factor = 1.2 # around the limit
+    # sim.thrust_factor = 1.5 # does not work
+    # sim.thrust_factor = 0.9 # does not work
+    sim.thrust_factor = 1.0
     sim.simulate_section(1)
     fig = plt.figure()
     ax = plt.gca()
@@ -467,7 +476,7 @@ def simulate_figure7_scenario():
             ax.set_ylim([-0.5, 5.5])
     except KeyboardInterrupt:
         pass
-    
+
     plt.figure()
     sim.plot_trajectories()
     ax = plt.gca()
@@ -476,6 +485,8 @@ def simulate_figure7_scenario():
 
 
 def figure7_scenario():
+    global N_TIMESTEPS
+    N_TIMESTEPS = 3
     # ball initial conditions
     p0_ball = np.array([-0.5, 0.0, 3.5])
     v0_ball = np.array([2.5, 0.0, 6.0])
@@ -586,8 +597,8 @@ def figure7_scenario():
 
 
 def main():
-    # figure7_scenario()
-    simulate_figure7_scenario()
+    figure7_scenario()
+    # simulate_figure7_scenario()
     plt.show()
 
 
