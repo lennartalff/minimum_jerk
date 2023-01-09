@@ -1,3 +1,5 @@
 numpy
 pyquaternion
 matplotlib
+sympy
+notebook

@@ -18,7 +18,7 @@ TANG_ANGLE = 2 * math.pi
 F_MIN = 5.0
 F_MAX = 25.0
 OMEGA_MAX = 20.0
-GRAVITY = np.array([0.0, 0.0, -9.81])
+GRAVITY = np.array([0.0, 0.0, 0.0])
 
 
 @dataclass
@@ -111,6 +111,21 @@ def rotation_between_vectors(v1, v2) -> Quaternion:
     n *= s
     q = Quaternion(w=c, x=n[0], y=n[1], z=n[2])
     return q
+
+class Ring():
+    def __init__(self, p0, v0):
+        self.p0 = p0
+        self.v0 = v0
+        self.z_floor = -1.5
+    
+    def velocity(self, t):
+        return self.v0
+
+    def position(self, t):
+        return self.p0 + self.v0 * t
+    
+    def floor_collision_time(self, z_offset):
+        return (self.z_floor + z_offset = self.p0[2]) / self.v0[2]
 
 
 class Ball():
@@ -289,7 +304,7 @@ def generate_trajectories(p, v, a, t_now, dt_left, ball: Ball):
             for i in range(len(normals)):
                 trajectory = quadtraj.RapidTrajectory(p_rotated, v_rotated,
                                                       a_rotated,
-                                                      gravity_rotated)
+                                                      gravity_rotated, 1.1, 1.4, 5.4)
                 a_final = normals[i, :] * f + gravity_rotated
                 p_final = p_ball_rotated - normals[i, :] * 0.2
                 trajectory.set_goal_acceleration(a_final)
