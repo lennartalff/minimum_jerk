@@ -125,7 +125,7 @@ class Ring():
         return self.p0 + self.v0 * t
     
     def floor_collision_time(self, z_offset):
-        return (self.z_floor + z_offset = self.p0[2]) / self.v0[2]
+        return (self.z_floor + z_offset + self.p0[2]) / self.v0[2]
 
 
 class Ball():
@@ -217,12 +217,15 @@ class Ball():
 
 class Body():
 
-    def __init__(self, p0, v0, a0):
+    def __init__(self, p0, v0, a0, m_rb=0.0, m_added=0.0, damping=0.0):
         self.p = p0
         self.v = v0
         self.a = a0
+        self.m_rb = m_rb
+        self.m_added = m_added
+        self.damping = damping
         self.q = Quaternion()
-        self.gravity = np.array([0, 0, -9.81])
+        self.gravity = GRAVITY
         self.thrust = np.array([0.0, 0.0, 0.0])
 
     def set_thrust(self, thrust):
@@ -357,8 +360,17 @@ def test_plot_normals():
                    length=0.1,
                    normalize=True)
 
+class UuvSimulator():
+    def __init__(self, p0, v0, a0, ring: Ring, time_horizon_us) -> None:
+        self.ring = ring
+        self.time_horizon_us = time_horizon_us
+        self.dt_us = 1000
+        self.t_last_trajectory_update_us = -1000000000
+        self.trajectory_update_period_us = 20000
+        self.t_now_us = 0
+        self.body = Body(p0, v0, a0)
 
-class Simulator():
+class QuadSimulator():
 
     def __init__(self, p0, v0, a0, ball: Ball, time_horizon_us) -> None:
         self.ball = ball
@@ -468,7 +480,7 @@ def simulate_figure7_scenario():
 
     ball = Ball(p0_ball, v0_ball)
     time_horizon_us = int(ball.floor_collision_time(0.3) * 1e6)
-    sim = Simulator(p0, v0, a0, ball, time_horizon_us)
+    sim = QuadSimulator(p0, v0, a0, ball, time_horizon_us)
 
     # sim.thrust_factor = 1.1 # works quite okay
     # sim.thrust_factor = 1.2 # around the limit
