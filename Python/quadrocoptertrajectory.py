@@ -232,6 +232,7 @@ class SingleAxisTrajectory:
             roots = self._xid_poly.roots()
             # only take real roots
             roots = roots.real[abs(roots.imag) < 1e-5]
+            roots = [x for x in roots if x < t2 and x > t1]
             if len(roots) == 0:
                 self._xi_peak_times = [0.0, 0.0]
             elif len(roots) == 1:
@@ -259,8 +260,15 @@ class SingleAxisTrajectory:
 
     def get_min_max_thrust(self, t1, t2):
         if self._thrust_peak_times[0] is None:
-            roots = self._fd_poly.roots()
+            try:
+                roots = self._fd_poly.roots()
+            except Exception as e:
+                print(self._fd_poly.coef)
+                print(self._v_poly_coeff)
+                print(self._a, self._b, self._v0, self._a0)
+                raise e
             roots = roots.real[abs(roots.imag) < 1e-5]
+            roots = [x for x in roots if x < t2 and x > t1]
             if len(roots) == 0:
                 self._thrust_peak_times = [0.0, 0.0]
             elif len(roots) == 1:
@@ -272,10 +280,14 @@ class SingleAxisTrajectory:
             elif len(roots) == 3:
                 candidate_values = np.polynomial.polynomial.polyval(
                     roots, self._f_poly.coef)
-                self._thrust_peak_times[0] = roots[np.argmin(candidate_values)
-                                                   [0]]
-                self._thrust_peak_times[1] = roots[np.argmax(candidate_values)
-                                                   [0]]
+                try:
+                    self._thrust_peak_times[0] = roots[np.argmin(candidate_values)]
+                except IndexError as e:
+                    print(roots)
+                    print(candidate_values)
+                    print(np.argmin(candidate_values))
+                    raise e
+                self._thrust_peak_times[1] = roots[np.argmax(candidate_values)]
         f_max = self.get_thrust(t1)
         f_min = self.get_thrust(t2)
         if f_max < f_min:
@@ -629,8 +641,8 @@ class RapidTrajectory:
         fmin = np.sqrt(f_min_square_sum)
         fmax = np.sqrt(f_max_square_sum)
 
-        if f_min_square_sum > 1e-6:
-            omega_bound_square = (xi_max_square_sum / f_min_square_sum *
+        if f_min_square_sum + 0.1 > 1e-6:
+            omega_bound_square = (xi_max_square_sum / (f_min_square_sum + 0.1) *
                                   self._m**2)
         else:
             omega_bound_square = float("inf")
