@@ -718,17 +718,17 @@ class QuadSimulator():
 
 
 def simulate_figure7_uuv():
-    p0_ring = np.array([2.5, 0.0, 0.0])
+    p0_ring = np.array([2.5, 1.0, 0.0])
     v0_ring = np.array([0.0, 0.0, -0.2])
 
     # vehicle initial conditions
-    p0 = [0.0, 0.0, -0.5]
+    p0 = [0.75, 1.0, -0.5]
     v0 = [0.2, 0.0, 0.0]
     a0 = [0.0, 0.0, 0.0]
 
     ring = Ring(p0_ring, v0_ring, Quaternion(axis=[0.0, 0.0, 1.0],
                                              degrees=180))
-    time_horizon_us = int(ring.floor_collision_time(0.3) / 2.0 * 1e6)
+    time_horizon_us = int(ring.floor_collision_time(0.3) / 1.0 * 1e6)
     sim = UuvSimulator(p0, v0, a0, ring, time_horizon_us, False)
 
     sim.simulate_section(1)
